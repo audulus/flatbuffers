@@ -158,6 +158,23 @@ let benchmarks = {
     }
   }
 
+  Benchmark(
+    "FlatBufferBuilder Add Offsets",
+    configuration: kiloConfiguration)
+  { benchmark in
+    var fb = FlatBufferBuilder(initialSize: 1024 * 1024 * 32)
+    benchmark.startMeasurement()
+    for _ in benchmark.scaledIterations {
+      let flatbuffers = fb.create(string: "flatbuffers")
+      let json = fb.create(string: "JSON")
+      let swift = fb.create(string: "swift 6.0")
+      let off = fb.createVector(ofOffsets: [flatbuffers, json, swift])
+      let s = fb.startTable(with: 4)
+      fb.add(offset: off, at: 8)
+      blackHole(fb.endTable(at: s))
+    }
+  }
+
   Benchmark("Structs") { benchmark in
     let rawSize = ((16 * 5) * benchmark.scaledIterations.count) / 1024
     var fb = FlatBufferBuilder(initialSize: Int32(rawSize * 1600))
