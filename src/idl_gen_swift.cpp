@@ -480,7 +480,7 @@ class SwiftGenerator : public BaseGenerator {
         code_ +=
             "{{ACCESS_TYPE}} static func finish(_ fbb: inout "
             "FlatBufferBuilder, end: "
-            "Offset, prefix: Bool = false) { fbb.finish(offset: end, "
+            "Offset<Any>, prefix: Bool = false) { fbb.finish(offset: end, "
             "fileId: "
             "{{STRUCTNAME}}.id, addPrefix: prefix) }";
       }
@@ -520,7 +520,7 @@ class SwiftGenerator : public BaseGenerator {
         "{{ACCESS_TYPE}} static func end{{SHORT_STRUCTNAME}}(_ fbb: inout "
         "FlatBufferBuilder, "
         "start: "
-        "UOffset) -> Offset { let end = Offset(offset: "
+        "UOffset) -> Offset<Any> { let end = Offset<Any>(offset: "
         "fbb.endTable(at: start))\\";
     if (require_fields.capacity() != 0) {
       std::string fields = "";
@@ -542,7 +542,7 @@ class SwiftGenerator : public BaseGenerator {
       }
       code_ += "";
       Outdent();
-      code_ += ") -> Offset {";
+      code_ += ") -> Offset<Any> {";
       Indent();
       code_ += "let __start = {{STRUCTNAME}}.start{{SHORT_STRUCTNAME}}(&fbb)";
       for (auto it = create_func_body.begin(); it < create_func_body.end();
@@ -562,8 +562,8 @@ class SwiftGenerator : public BaseGenerator {
 
       code_ += "{{ACCESS_TYPE}} static func " +
                namer_.Method("sort_vector_of", struct_def) +
-               "(offsets:[Offset], "
-               "_ fbb: inout FlatBufferBuilder) -> Offset {";
+               "(offsets:[Offset<Any>], "
+               "_ fbb: inout FlatBufferBuilder) -> Offset<Any> {";
       Indent();
       code_ += spacing + "var off = offsets";
       code_ +=
@@ -657,9 +657,9 @@ class SwiftGenerator : public BaseGenerator {
         namer_.Variable(field) +
         (IsVector(field.value.type) || IsArray(field.value.type)
              ? "VectorOffset"
-             : "Offset");
-    create_func_header.push_back(arg_label + " " + field_var + ": " + "Offset" +
-                                 (field.IsRequired() ? "" : " = Offset()"));
+             : "Offset<Any>");
+    create_func_header.push_back(arg_label + " " + field_var + ": " + "Offset<Any>" +
+                                 (field.IsRequired() ? "" : " = Offset<Any>()"));
     const auto reader_type =
         IsStruct(field.value.type) && field.value.type.struct_def->fixed
             ? "structOffset: {{TABLEOFFSET}}.{{OFFSET}}.p) }"
@@ -1257,9 +1257,9 @@ class SwiftGenerator : public BaseGenerator {
         "{{ACCESS_TYPE}} static func pack(_ builder: inout FlatBufferBuilder, "
         "obj: "
         "inout " +
-        type_name + "?) -> Offset {";
+        type_name + "?) -> Offset<Any> {";
     Indent();
-    code_ += "guard var obj = obj else { return Offset() }";
+    code_ += "guard var obj = obj else { return Offset<Any>() }";
     code_ += "return pack(&builder, obj: &obj)";
     Outdent();
     code_ += "}";
@@ -1268,7 +1268,7 @@ class SwiftGenerator : public BaseGenerator {
         "{{ACCESS_TYPE}} static func pack(_ builder: inout FlatBufferBuilder, "
         "obj: "
         "inout " +
-        type_name + ") -> Offset {";
+        type_name + ") -> Offset<Any> {";
     Indent();
   }
 
@@ -1348,7 +1348,7 @@ class SwiftGenerator : public BaseGenerator {
         }
         case BASE_TYPE_UNION: {
           code_ += "let __" + field_var + " = obj." + field_var +
-                   "?.pack(builder: &builder) ?? Offset()";
+                   "?.pack(builder: &builder) ?? Offset<Any>()";
           unpack_body.push_back("if let o = obj." + field_var + "?.type {");
           unpack_body.push_back("  {{STRUCTNAME}}.add(" + field_var +
                                 "Type: o" + builder);
@@ -1412,7 +1412,7 @@ class SwiftGenerator : public BaseGenerator {
     const auto vectortype = field_type.VectorType();
     switch (vectortype.base_type) {
       case BASE_TYPE_UNION: {
-        code_ += "var __" + var + "__: [Offset] = []";
+        code_ += "var __" + var + "__: [Offset<Any>] = []";
         code_ += "for i in obj." + var + " {";
         Indent();
         code_ += "guard let off = i?.pack(builder: &builder) else { continue }";
@@ -1428,7 +1428,7 @@ class SwiftGenerator : public BaseGenerator {
       case BASE_TYPE_UTYPE: break;
       case BASE_TYPE_STRUCT: {
         if (field_type.struct_def && !field_type.struct_def->fixed) {
-          code_ += "var __" + var + "__: [Offset] = []";
+          code_ += "var __" + var + "__: [Offset<Any>] = []";
           code_ += "for var i in obj." + var + " {";
           Indent();
           code_ +=
@@ -1468,14 +1468,14 @@ class SwiftGenerator : public BaseGenerator {
 
   void BuildingOptionalObjects(const std::string &var,
                                const std::string &body_front) {
-    code_ += "let __" + var + ": Offset";
+    code_ += "let __" + var + ": Offset<Any>";
     code_ += "if let s = obj." + var + " {";
     Indent();
     code_ += "__" + var + " = " + body_front;
     Outdent();
     code_ += "} else {";
     Indent();
-    code_ += "__" + var + " = Offset()";
+    code_ += "__" + var + " = Offset<Any>()";
     Outdent();
     code_ += "}";
     code_ += "";
@@ -1663,7 +1663,7 @@ class SwiftGenerator : public BaseGenerator {
       code_ += "return " + is_struct + ".pack(&builder, obj: &__obj)";
       Outdent();
     }
-    code_ += "default: return Offset()";
+    code_ += "default: return Offset<Any>()";
     code_ += "}";
   }
 
