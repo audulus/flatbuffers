@@ -657,7 +657,7 @@ class SwiftGenerator : public BaseGenerator {
         namer_.Variable(field) +
         (IsVector(field.value.type) || IsArray(field.value.type)
              ? "VectorOffset"
-             : "Offset<Any>");
+             : "Offset");
     create_func_header.push_back(arg_label + " " + field_var + ": " + "Offset<Any>" +
                                  (field.IsRequired() ? "" : " = Offset<Any>()"));
     const auto reader_type =
